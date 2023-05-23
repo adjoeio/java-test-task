@@ -1,0 +1,6 @@
+FROM adjoe-test/java-base
+
+# Set the local PORT environment variable inside the container
+ENV PORT 8080
+
+ENTRYPOINT ["/app/docker/start.sh"]

@@ -1,0 +1,55 @@
+version: '3.6'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-dev
+    image: adjoe-test/java-dev
+    ports:
+      - "8080:8080"
+    networks:
+      - adjoe
+    depends_on:
+      - localstack
+      - mysql
+      - awscli
+    volumes:
+      - ./:/app
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_DATABASE=adjoe
+      - MYSQL_USER=adjoe
+      - MYSQL_PASSWORD=adjoe
+      - MYSQL_ROOT_PASSWORD=adjoe
+    networks:
+      - adjoe
+
+  localstack:
+    image: localstack/localstack:latest
+    user: root
+    environment:
+      - DATA_DIR=/tmp/localstack/data
+      - DEFAULT_REGION=eu-central-1
+      - SERVICES=sqs
+    ports:
+      - 4566:4566
+    networks:
+      - adjoe
+
+  awscli:
+    depends_on:
+      - localstack
+    image: adjoe-test/awscli
+    command: 'sqs create-queue --queue-name my-queue --region=eu-central-1 --endpoint-url="http://localstack:4566"'
+    networks:
+      - adjoe
+
+networks:
+  adjoe:
+    name: adjoe-test
+    driver: bridge
+
